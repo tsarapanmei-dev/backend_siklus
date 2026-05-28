@@ -88,7 +88,7 @@ public class UserServiceImpl implements UserService {
 
         repo.save(user);
 
-        emailService.sendOtp(user.getEmailUser(), otp, "Verifikasi Akun");
+//        emailService.sendOtp(user.getEmailUser(), otp, "Verifikasi Akun");
 
         return ResponseEntity.ok(new BaseResponse("Registrasi berhasil! Cek email kamu untuk kode OTP."));
     }
