@@ -52,9 +52,25 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResponseEntity<?> register(RegisterRequest request) {
 
-        if (repo.findByEmailUser(request.getEmailUser()).isPresent()) {
-            return ResponseEntity.badRequest()
-                    .body(new BaseResponse("Email sudah digunakan!"));
+        User existingUser = repo.findByEmailUser(request.getEmailUser()).orElse(null);
+
+        if (existingUser != null) {
+
+            if (existingUser.isVerified()) {
+                return ResponseEntity.badRequest()
+                        .body(new BaseResponse("Email sudah digunakan!"));
+            }
+
+            String otp = generateOtp();
+
+            existingUser.setOtpCode(otp);
+            existingUser.setOtpExpiry(LocalDateTime.now().plusMinutes(5));
+
+            repo.save(existingUser);
+
+            emailService.sendOtp(existingUser.getEmailUser(), otp, "Verifikasi Akun");
+
+            return ResponseEntity.ok(new BaseResponse("OTP baru telah dikirim. Silakan verifikasi email."));
         }
 
         User user = new User();
