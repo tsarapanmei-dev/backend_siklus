@@ -5,7 +5,7 @@ public class LoginResponse {
     private String email_user;
     private String rw_user;
 
-    public LoginResponse(Long id_user, String email_user, String rw_user){
+    public LoginResponse(Long id_user, String email_user, String rw_user) {
         this.id_user = id_user;
         this.email_user = email_user;
         this.rw_user = rw_user;

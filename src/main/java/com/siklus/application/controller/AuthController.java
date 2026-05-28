@@ -35,7 +35,9 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> createUser(@Valid @RequestBody RegisterRequest request) {return userService.register(request);}
+    public ResponseEntity<?> createUser(@Valid @RequestBody RegisterRequest request) {
+        return userService.register(request);
+    }
 
     @PostMapping("/send-register-otp")
     public ResponseEntity<?> sendRegisterOtp(@RequestBody Map<String, String> body) {

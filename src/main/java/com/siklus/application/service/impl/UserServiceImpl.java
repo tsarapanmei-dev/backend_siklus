@@ -51,45 +51,23 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResponseEntity<?> register(RegisterRequest request) {
-
-        User existingUser = repo.findByEmailUser(request.getEmailUser()).orElse(null);
-
-        if (existingUser != null) {
-
-            if (existingUser.isVerified()) {
-                return ResponseEntity.badRequest()
-                        .body(new BaseResponse("Email sudah digunakan!"));
-            }
-
-            String otp = generateOtp();
-
-            existingUser.setOtpCode(otp);
-            existingUser.setOtpExpiry(LocalDateTime.now().plusMinutes(5));
-
-            repo.save(existingUser);
-
-            emailService.sendOtp(existingUser.getEmailUser(), otp, "Verifikasi Akun");
-
-            return ResponseEntity.ok(new BaseResponse("OTP baru telah dikirim. Silakan verifikasi email."));
+        if (repo.findByEmailUser(request.getEmailUser()).isPresent()) {
+            return ResponseEntity.badRequest()
+                    .body(new BaseResponse("Email sudah digunakan!"));
         }
 
         User user = new User();
-
         user.setEmailUser(request.getEmailUser());
         user.setRwUser(request.getRwUser());
         user.setPass(passwordEncoder.encode(request.getPass()));
-
         user.setVerified(false);
 
         String otp = generateOtp();
-
         user.setOtpCode(otp);
         user.setOtpExpiry(LocalDateTime.now().plusMinutes(5));
-
         repo.save(user);
 
-//        emailService.sendOtp(user.getEmailUser(), otp, "Verifikasi Akun");
-
+        emailService.sendOtp(user.getEmailUser(), otp, "Verifikasi Akun");
         return ResponseEntity.ok(new BaseResponse("Registrasi berhasil! Cek email kamu untuk kode OTP."));
     }
 

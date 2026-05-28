@@ -38,37 +38,17 @@ public class User {
     @Column(name = "otp_expiry")
     private LocalDateTime otpExpiry;
 
-    public Long getIdUser() {
-        return idUser;
-    }
+    public Long getIdUser() { return idUser; }
+    public void setIdUser(Long idUser) { this.idUser = idUser; }
 
-    public void setIdUser(Long idUser) {
-        this.idUser = idUser;
-    }
+    public String getEmailUser() { return emailUser; }
+    public void setEmailUser(String emailUser) { this.emailUser = emailUser; }
 
-    public String getEmailUser() {
-        return emailUser;
-    }
+    public String getRwUser() { return rwUser; }
+    public void setRwUser(String rwUser) { this.rwUser = rwUser; }
 
-    public void setEmailUser(String emailUser) {
-        this.emailUser = emailUser;
-    }
-
-    public String getRwUser() {
-        return rwUser;
-    }
-
-    public void setRwUser(String rwUser) {
-        this.rwUser = rwUser;
-    }
-
-    public String getPass() {
-        return pass;
-    }
-
-    public void setPass(String pass) {
-        this.pass = pass;
-    }
+    public String getPass() { return pass; }
+    public void setPass(String pass) { this.pass = pass; }
 
     public boolean isVerified() { return isVerified; }
     public void setVerified(boolean verified) { isVerified = verified; }
