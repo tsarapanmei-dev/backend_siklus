@@ -1,16 +1,49 @@
 package com.siklus.application.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonAppend;
 import jakarta.persistence.*;
 
-import java.text.DecimalFormat;
 import java.time.LocalDate;
-import java.util.Date;
+
+import com.siklus.application.converter.RWSampahConverter;
 
 @Entity
 @Table(name = "sampah")
 public class Sampah {
+
+    public enum JenisSampah {
+        Organik, Anorganik, Residu
+    }
+
+    public enum RWSampah {
+
+        RW_02("RW 02"),
+        RW_14("RW 14"),
+        RW_15("RW 15"),
+        RW_17("RW 17");
+
+        private final String dbValue;
+
+        RWSampah(String dbValue) {
+            this.dbValue = dbValue;
+        }
+
+        public String getDbValue() {
+            return dbValue;
+        }
+
+        public static RWSampah fromDbValue(String value) {
+
+            for (RWSampah rw : values()) {
+                if (rw.dbValue.equals(value)) {
+                    return rw;
+                }
+            }
+
+            throw new IllegalArgumentException(
+                    "RW tidak valid: " + value
+            );
+        }
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,13 +54,15 @@ public class Sampah {
     private LocalDate dateSampah;
 
     @Column(name = "jns_sampah", nullable = false)
-    private String jnsSampah;
+    @Enumerated(EnumType.STRING)
+    private JenisSampah jnsSampah;
 
     @Column(name = "brt_sampah", nullable = false)
-    private Integer brtSampah;
+    private Double brtSampah;
 
     @Column(name = "rw_sampah", nullable = false)
-    private String rwSampah;
+    @Convert(converter = RWSampahConverter.class)
+    private RWSampah rwSampah;
 
     public Long getIdSampah() {
         return idSampah;
@@ -45,28 +80,29 @@ public class Sampah {
         this.dateSampah = dateSampah;
     }
 
-    public String getJnsSampah() {
+    public JenisSampah getJnsSampah() {
         return jnsSampah;
     }
 
-    public void setJnsSampah(String jnsSampah) {
+    public void setJnsSampah(JenisSampah jnsSampah) {
         this.jnsSampah = jnsSampah;
     }
 
-    public Integer getBrtSampah() {
-        return brtSampah;
-    }
-
-    public void setBrtSampah(Integer brtSampah) {
-        this.brtSampah = brtSampah;
-    }
-
-    public String getRwSampah() {
+    public RWSampah getRwSampah() {
         return rwSampah;
     }
 
-    public void setRwSampah(String rwSampah) {
+    public void setRwSampah(RWSampah rwSampah) {
         this.rwSampah = rwSampah;
     }
+
+    public Double getBrtSampah() {
+        return brtSampah;
+    }
+
+    public void setBrtSampah(Double brtSampah) {
+        this.brtSampah = brtSampah;
+    }
+
 }
 

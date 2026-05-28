@@ -1,6 +1,7 @@
 package com.siklus.application.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.LocalDateTime;
 import jakarta.persistence.*;
 
 @Entity
@@ -9,11 +10,12 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_user") // kolom di database
+    @JsonProperty("id_user")
+    @Column(name = "id_user")
     private Long idUser;
 
     @JsonProperty("email_user")
-    @Column(name = "email_user", nullable = false, length = 25, unique = true)
+    @Column(name = "email_user", nullable = false, length = 255, unique = true)
     private String emailUser;
 
     @JsonProperty("rw_user")
@@ -21,10 +23,21 @@ public class User {
     private String rwUser;
 
     @JsonProperty("pass")
-    @Column(name = "pass", nullable = false, length = 25)
+    @Column(name = "pass", nullable = false, length = 255)
     private String pass;
 
-    // Getter dan Setter
+    @JsonProperty("is_verified")
+    @Column(name = "is_verified", nullable = false)
+    private boolean isVerified = false;
+
+    @JsonProperty("otp_code")
+    @Column(name = "otp_code", length = 6)
+    private String otpCode;
+
+    @JsonProperty("otp_expiry")
+    @Column(name = "otp_expiry")
+    private LocalDateTime otpExpiry;
+
     public Long getIdUser() {
         return idUser;
     }
@@ -56,4 +69,13 @@ public class User {
     public void setPass(String pass) {
         this.pass = pass;
     }
+
+    public boolean isVerified() { return isVerified; }
+    public void setVerified(boolean verified) { isVerified = verified; }
+
+    public String getOtpCode() { return otpCode; }
+    public void setOtpCode(String otpCode) { this.otpCode = otpCode; }
+
+    public LocalDateTime getOtpExpiry() { return otpExpiry; }
+    public void setOtpExpiry(LocalDateTime otpExpiry) { this.otpExpiry = otpExpiry; }
 }

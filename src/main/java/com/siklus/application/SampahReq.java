@@ -1,7 +1,6 @@
 package com.siklus.application;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.time.LocalDate;
 
 public class SampahReq {
 
@@ -9,15 +8,13 @@ public class SampahReq {
     private Long idUser;
 
     @JsonProperty("date_sampah")
-    private LocalDate dateSampah;
+    private String dateSampah;
 
     @JsonProperty("jns_sampah")
     private String jnsSampah;
 
     @JsonProperty("brt_sampah")
-    private Integer brtSampah;
-
-    // ===== GETTER SETTER =====
+    private Double brtSampah;
 
     public Long getIdUser() {
         return idUser;
@@ -27,11 +24,11 @@ public class SampahReq {
         this.idUser = idUser;
     }
 
-    public LocalDate getDateSampah() {
+    public String getDateSampah() {
         return dateSampah;
     }
 
-    public void setDateSampah(LocalDate dateSampah) {
+    public void setDateSampah(String dateSampah) {
         this.dateSampah = dateSampah;
     }
 
@@ -43,11 +40,11 @@ public class SampahReq {
         this.jnsSampah = jnsSampah;
     }
 
-    public Integer getBrtSampah() {
+    public Double getBrtSampah() {
         return brtSampah;
     }
 
-    public void setBrtSampah(Integer brtSampah) {
+    public void setBrtSampah(Double brtSampah) {
         this.brtSampah = brtSampah;
     }
 }
