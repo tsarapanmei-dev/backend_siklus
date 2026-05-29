@@ -63,12 +63,22 @@ public class UserServiceImpl implements UserService {
         user.setVerified(false);
 
         String otp = generateOtp();
+
         user.setOtpCode(otp);
         user.setOtpExpiry(LocalDateTime.now().plusMinutes(5));
-        repo.save(user);
 
-        emailService.sendOtp(user.getEmailUser(), otp, "Verifikasi Akun");
-        return ResponseEntity.ok(new BaseResponse("Registrasi berhasil! Cek email kamu untuk kode OTP."));
+        try {
+            emailService.sendOtp(user.getEmailUser(), otp, "Verifikasi Akun");
+            repo.save(user);
+            return ResponseEntity.ok(
+                    new BaseResponse("Registrasi berhasil! Cek email kamu untuk kode OTP.")
+            );
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError()
+                    .body(new BaseResponse("Gagal mengirim OTP. Silakan coba lagi."));
+        }
     }
 
     @Override

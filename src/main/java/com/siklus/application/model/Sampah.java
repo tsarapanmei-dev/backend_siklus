@@ -15,7 +15,6 @@ public class Sampah {
     }
 
     public enum RWSampah {
-
         RW_02("RW 02"),
         RW_14("RW 14"),
         RW_15("RW 15"),
