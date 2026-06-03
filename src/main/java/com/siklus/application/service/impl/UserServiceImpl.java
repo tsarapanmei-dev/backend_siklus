@@ -65,7 +65,7 @@ public class UserServiceImpl implements UserService {
         String otp = generateOtp();
 
         user.setOtpCode(otp);
-        user.setOtpExpiry(LocalDateTime.now().plusMinutes(5));
+        user.setOtpExpiry(LocalDateTime.now(java.time.ZoneOffset.UTC).plusMinutes(5));
 
         try {
             emailService.sendOtp(user.getEmailUser(), otp, "Verifikasi Akun");
@@ -108,7 +108,7 @@ public class UserServiceImpl implements UserService {
             return ResponseEntity.badRequest().body(new BaseResponse("Kode OTP salah!"));
         }
 
-        if (user.getOtpExpiry() == null || LocalDateTime.now().isAfter(user.getOtpExpiry())) {
+        if (user.getOtpExpiry() == null || LocalDateTime.now(java.time.ZoneOffset.UTC).isAfter(user.getOtpExpiry())) {
             return ResponseEntity.badRequest().body(new BaseResponse("Kode OTP sudah kedaluwarsa!"));
         }
 
