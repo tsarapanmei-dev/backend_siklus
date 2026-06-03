@@ -13,7 +13,7 @@ import com.siklus.application.repository.UserRepository;
 import com.siklus.application.service.SampahService;
 import org.springframework.stereotype.Service;
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
@@ -22,6 +22,7 @@ import java.util.List;
 
 @Service
 public class SampahServiceImpl implements SampahService {
+
     private final SampahRepository sampahRepository;
     private final UserRepository userRepository;
 
@@ -31,6 +32,58 @@ public class SampahServiceImpl implements SampahService {
     ) {
         this.sampahRepository = sampahRepository;
         this.userRepository = userRepository;
+    }
+
+    private Sampah.RWSampah parseRW(Object rwObj, int rowIndex) {
+        if (rwObj == null) {
+            throw new RuntimeException(
+                    "RW bernilai null pada baris ke-" + rowIndex
+            );
+        }
+        System.out.println(
+                "[ROW " + rowIndex + "] RW TYPE = " + rwObj.getClass().getName()
+        );
+        if (rwObj instanceof Sampah.RWSampah) {
+            return (Sampah.RWSampah) rwObj;
+        }
+        if (rwObj instanceof String) {
+            return Sampah.RWSampah.fromDbValue((String) rwObj);
+        }
+        throw new RuntimeException(
+                "Tipe RW tidak dikenali pada baris ke-" + rowIndex
+                        + ": " + rwObj.getClass().getName()
+        );
+    }
+
+    private LocalDate parseLocalDate(Object dateObj, int rowIndex) {
+        if (dateObj == null) {
+            throw new RuntimeException(
+                    "Tanggal bernilai null pada baris ke-" + rowIndex
+            );
+        }
+        System.out.println(
+                "[ROW " + rowIndex + "] DATE TYPE = " + dateObj.getClass().getName()
+        );
+        if (dateObj instanceof LocalDate) {
+            return (LocalDate) dateObj;
+        }
+        if (dateObj instanceof java.sql.Date) {
+            return ((java.sql.Date) dateObj).toLocalDate();
+        }
+        throw new RuntimeException(
+                "Tipe tanggal tidak dikenali pada baris ke-" + rowIndex
+                        + ": " + dateObj.getClass().getName()
+        );
+    }
+
+    private double parseDouble(Object numObj, String fieldName, int rowIndex) {
+        if (numObj == null) {
+            System.out.println(
+                    "[ROW " + rowIndex + "] " + fieldName + " = null, defaulting to 0.0"
+            );
+            return 0.0;
+        }
+        return ((Number) numObj).doubleValue();
     }
 
     @Override
@@ -73,56 +126,46 @@ public class SampahServiceImpl implements SampahService {
     }
 
     @Override
-    public List<ChartRWResponse> getChartRW(
-            ChartFilterType filter
-    ) {
+    public List<ChartRWResponse> getChartRW(ChartFilterType filter) {
         LocalDate startDate = resolveStartDate(filter);
         List<Object[]> result = sampahRepository.getChartRWMultiLine(startDate);
         List<ChartRWResponse> chart = new ArrayList<>();
 
-        for (Object[] row : result) {
-            Sampah.RWSampah rwEnum = (Sampah.RWSampah) row[0];
-            String rw = rwEnum.getDbValue();
-            Double organik = ((Number) row[1]).doubleValue();
-            Double anorganik = ((Number) row[2]).doubleValue();
-            Double residu = ((Number) row[3]).doubleValue();
+        System.out.println("TOTAL DATA CHART RW = " + result.size());
 
-            chart.add(
-                    new ChartRWResponse(
-                            rw,
-                            organik,
-                            anorganik,
-                            residu
-                    )
-            );
+        for (int i = 0; i < result.size(); i++) {
+            Object[] row = result.get(i);
+
+            Sampah.RWSampah rwEnum = parseRW(row[0], i);
+            String rw              = rwEnum.getDbValue();
+            double organik         = parseDouble(row[1], "organik",   i);
+            double anorganik       = parseDouble(row[2], "anorganik", i);
+            double residu          = parseDouble(row[3], "residu",    i);
+
+            chart.add(new ChartRWResponse(rw, organik, anorganik, residu));
         }
         return chart;
     }
 
     @Override
     public List<ChartRwTanggalResponse> getChartRwTanggal(ChartFilterType filter) {
-
         LocalDate startDate = resolveStartDate(filter);
         List<Object[]> result = sampahRepository.getChartPerRwTanggal(startDate);
         List<ChartRwTanggalResponse> chart = new ArrayList<>();
 
-        for (Object[] row : result) {
-            Sampah.RWSampah rwEnum = (Sampah.RWSampah) row[0];
-            String rw = rwEnum.getDbValue();
-            LocalDate tanggal = (LocalDate) row[1];
-            Double organik = ((Number) row[2]).doubleValue();
-            Double anorganik = ((Number) row[3]).doubleValue();
-            Double residu = ((Number) row[4]).doubleValue();
+        System.out.println("TOTAL DATA CHART RW TANGGAL = " + result.size());
 
-            chart.add(
-                    new ChartRwTanggalResponse(
-                            rw,
-                            tanggal,
-                            organik,
-                            anorganik,
-                            residu
-                    )
-            );
+        for (int i = 0; i < result.size(); i++) {
+            Object[] row = result.get(i);
+
+            Sampah.RWSampah rwEnum = parseRW(row[0], i);
+            String rw              = rwEnum.getDbValue();
+            LocalDate tanggal      = parseLocalDate(row[1], i);
+            double organik         = parseDouble(row[2], "organik",   i);
+            double anorganik       = parseDouble(row[3], "anorganik", i);
+            double residu          = parseDouble(row[4], "residu",    i);
+
+            chart.add(new ChartRwTanggalResponse(rw, tanggal, organik, anorganik, residu));
         }
         return chart;
     }
@@ -132,104 +175,113 @@ public class SampahServiceImpl implements SampahService {
         List<Object[]> result = sampahRepository.getChartPerRwBulanan();
         List<ChartRwBulananResponse> chart = new ArrayList<>();
 
-        for (Object[] row : result) {
-            Sampah.RWSampah rwEnum = (Sampah.RWSampah) row[0];
-            String rw = rwEnum.getDbValue();
-            Integer year = ((Number) row[1]).intValue();
-            Integer month = ((Number) row[2]).intValue();
-            String bulan = month + "/" + year;
-            Double organik = ((Number) row[3]).doubleValue();
-            Double anorganik = ((Number) row[4]).doubleValue();
-            Double residu = ((Number) row[5]).doubleValue();
-            chart.add(
-                    new ChartRwBulananResponse(
-                            rw,
-                            bulan,
-                            organik,
-                            anorganik,
-                            residu
-                    )
-            );
+        System.out.println("TOTAL DATA CHART RW BULANAN = " + result.size());
+
+        for (int i = 0; i < result.size(); i++) {
+            Object[] row = result.get(i);
+
+            Sampah.RWSampah rwEnum = parseRW(row[0], i);
+            String rw              = rwEnum.getDbValue();
+            int year               = ((Number) row[1]).intValue();
+            int month              = ((Number) row[2]).intValue();
+            String bulan           = month + "/" + year;
+            double organik         = parseDouble(row[3], "organik",   i);
+            double anorganik       = parseDouble(row[4], "anorganik", i);
+            double residu          = parseDouble(row[5], "residu",    i);
+
+            chart.add(new ChartRwBulananResponse(rw, bulan, organik, anorganik, residu));
         }
         return chart;
     }
 
     @Override
     public List<ChartJenisResponse> getChartJenis() {
-
         List<Object[]> result = sampahRepository.getTotalSampahPerJenis();
         List<ChartJenisResponse> chart = new ArrayList<>();
 
-        for (Object[] row : result) {
-            String jenis = row[0].toString();
-            Double total = ((Number) row[1]).doubleValue();
+        System.out.println("TOTAL DATA CHART JENIS = " + result.size());
 
+        for (int i = 0; i < result.size(); i++) {
+            Object[] row = result.get(i);
+            String jenis = row[0] != null ? row[0].toString() : "UNKNOWN";
+            double total = parseDouble(row[1], "total", i);
             chart.add(new ChartJenisResponse(jenis, total));
         }
         return chart;
-    }
-
-    private LocalDate resolveStartDate(ChartFilterType filter) {
-        LocalDate now = LocalDate.now();
-        return switch (filter) {
-            case DAYS_7 -> now.minusDays(7);
-            case DAYS_30 -> now.minusDays(30);
-            case DAYS_90 -> now.minusDays(90);
-            case DAYS_365 -> now.minusDays(365);
-        };
     }
 
     @Override
     public byte[] exportExcel(ChartFilterType filter) throws Exception {
         LocalDate startDate = resolveStartDate(filter);
         List<Object[]> result = sampahRepository.getChartPerRwTanggal(startDate);
-        Workbook workbook = new XSSFWorkbook();
-        Sheet sheet = workbook.createSheet("Data Sampah");
 
-        Row headerRow = sheet.createRow(0);
+        System.out.println("TOTAL DATA EXCEL = " + result.size());
 
-        headerRow.createCell(0).setCellValue("RW");
-        headerRow.createCell(1).setCellValue("Tanggal");
-        headerRow.createCell(2).setCellValue("Organik");
-        headerRow.createCell(3).setCellValue("Anorganik");
-        headerRow.createCell(4).setCellValue("Residu");
+        SXSSFWorkbook workbook = new SXSSFWorkbook(100);
 
-        CellStyle headerStyle = workbook.createCellStyle();
+        try {
+            Sheet sheet = workbook.createSheet("Data Sampah");
+            Row headerRow = sheet.createRow(0);
+            headerRow.createCell(0).setCellValue("RW");
+            headerRow.createCell(1).setCellValue("Tanggal");
+            headerRow.createCell(2).setCellValue("Organik");
+            headerRow.createCell(3).setCellValue("Anorganik");
+            headerRow.createCell(4).setCellValue("Residu");
 
-        Font font = workbook.createFont();
-        font.setBold(true);
+            CellStyle headerStyle = workbook.createCellStyle();
+            Font font = workbook.createFont();
+            font.setBold(true);
+            headerStyle.setFont(font);
+            for (int i = 0; i < 5; i++) {
+                headerRow.getCell(i).setCellStyle(headerStyle);
+            }
 
-        headerStyle.setFont(font);
+            int rowNum = 1;
+            for (int i = 0; i < result.size(); i++) {
+                Object[] rowData = result.get(i);
 
-        for (int i = 0; i < 5; i++) {headerRow.getCell(i).setCellStyle(headerStyle);}
+                Sampah.RWSampah rwEnum = parseRW(rowData[0], i);
+                String rw              = rwEnum.getDbValue();
+                LocalDate tanggal      = parseLocalDate(rowData[1], i);
+                double organik         = parseDouble(rowData[2], "organik",   i);
+                double anorganik       = parseDouble(rowData[3], "anorganik", i);
+                double residu          = parseDouble(rowData[4], "residu",    i);
 
-        int rowNum = 1;
+                Row row = sheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(rw);
+                row.createCell(1).setCellValue(tanggal.toString());
+                row.createCell(2).setCellValue(organik);
+                row.createCell(3).setCellValue(anorganik);
+                row.createCell(4).setCellValue(residu);
+            }
 
-        for (Object[] rowData : result) {
-            Sampah.RWSampah rwEnum = (Sampah.RWSampah) rowData[0];
-            String rw = rwEnum.getDbValue();
+            sheet.setColumnWidth(0, 3500);
+            sheet.setColumnWidth(1, 4500);
+            sheet.setColumnWidth(2, 3500);
+            sheet.setColumnWidth(3, 3500);
+            sheet.setColumnWidth(4, 3500);
 
-            LocalDate tanggal = (LocalDate) rowData[1];
-            Double organik = ((Number) rowData[2]).doubleValue();
-            Double anorganik = ((Number) rowData[3]).doubleValue();
-            Double residu = ((Number) rowData[4]).doubleValue();
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            workbook.write(outputStream);
+            return outputStream.toByteArray();
 
-            Row row = sheet.createRow(rowNum++);
+        } catch (Exception e) {
+            System.out.println("===== EXPORT ERROR =====");
+            e.printStackTrace();
+            throw e;
 
-            row.createCell(0).setCellValue(rw);
-            row.createCell(1).setCellValue(tanggal.toString());
-            row.createCell(2).setCellValue(organik);
-            row.createCell(3).setCellValue(anorganik);
-            row.createCell(4).setCellValue(residu);
+        } finally {
+            workbook.close();
+            workbook.dispose();
         }
-
-        for (int i = 0; i < 5; i++) {sheet.autoSizeColumn(i);}
-
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        workbook.write(outputStream);
-        workbook.close();
-
-        return outputStream.toByteArray();
+    }
+    private LocalDate resolveStartDate(ChartFilterType filter) {
+        LocalDate now = LocalDate.now();
+        return switch (filter) {
+            case DAYS_7   -> now.minusDays(7);
+            case DAYS_30  -> now.minusDays(30);
+            case DAYS_90  -> now.minusDays(90);
+            case DAYS_365 -> now.minusDays(365);
+        };
     }
 }
-
