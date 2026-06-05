@@ -75,7 +75,6 @@ public class UserServiceImpl implements UserService {
             );
 
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.internalServerError()
                     .body(new BaseResponse("Gagal mengirim OTP. Silakan coba lagi."));
         }

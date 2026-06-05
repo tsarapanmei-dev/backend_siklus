@@ -40,9 +40,6 @@ public class SampahServiceImpl implements SampahService {
                     "RW bernilai null pada baris ke-" + rowIndex
             );
         }
-        System.out.println(
-                "[ROW " + rowIndex + "] RW TYPE = " + rwObj.getClass().getName()
-        );
         if (rwObj instanceof Sampah.RWSampah) {
             return (Sampah.RWSampah) rwObj;
         }
@@ -61,9 +58,6 @@ public class SampahServiceImpl implements SampahService {
                     "Tanggal bernilai null pada baris ke-" + rowIndex
             );
         }
-        System.out.println(
-                "[ROW " + rowIndex + "] DATE TYPE = " + dateObj.getClass().getName()
-        );
         if (dateObj instanceof LocalDate) {
             return (LocalDate) dateObj;
         }
@@ -78,9 +72,6 @@ public class SampahServiceImpl implements SampahService {
 
     private double parseDouble(Object numObj, String fieldName, int rowIndex) {
         if (numObj == null) {
-            System.out.println(
-                    "[ROW " + rowIndex + "] " + fieldName + " = null, defaulting to 0.0"
-            );
             return 0.0;
         }
         return ((Number) numObj).doubleValue();
@@ -89,38 +80,20 @@ public class SampahServiceImpl implements SampahService {
     @Override
     public Sampah saveSampah(SampahReq request) {
         try {
-            System.out.println("===== DEBUG SAVE SAMPAH =====");
-            System.out.println("ID USER      = " + request.getIdUser());
-            System.out.println("DATE SAMPAH  = " + request.getDateSampah());
-            System.out.println("JENIS SAMPAH = " + request.getJnsSampah());
-            System.out.println("BERAT SAMPAH = " + request.getBrtSampah());
-
             User user = userRepository.findById(request.getIdUser())
                     .orElseThrow(() -> new RuntimeException("User tidak ditemukan"));
-
-            System.out.println("RW USER DB   = " + user.getRwUser());
 
             Sampah sampah = new Sampah();
             sampah.setDateSampah(LocalDate.parse(request.getDateSampah()));
             sampah.setJnsSampah(Sampah.JenisSampah.valueOf(request.getJnsSampah()));
             sampah.setBrtSampah(request.getBrtSampah());
-
-            System.out.println("RW USER FINAL = " + user.getRwUser());
-
             sampah.setRwSampah(
                     Sampah.RWSampah.fromDbValue(user.getRwUser())
             );
 
-            System.out.println("BEFORE SAVE");
-
-            Sampah saved = sampahRepository.save(sampah);
-
-            System.out.println("AFTER SAVE");
-            return saved;
+            return sampahRepository.save(sampah);
 
         } catch (Exception e) {
-            System.out.println("===== ERROR SAVE SAMPAH =====");
-            e.printStackTrace();
             throw e;
         }
     }
@@ -130,8 +103,6 @@ public class SampahServiceImpl implements SampahService {
         LocalDate startDate = resolveStartDate(filter);
         List<Object[]> result = sampahRepository.getChartRWMultiLine(startDate);
         List<ChartRWResponse> chart = new ArrayList<>();
-
-        System.out.println("TOTAL DATA CHART RW = " + result.size());
 
         for (int i = 0; i < result.size(); i++) {
             Object[] row = result.get(i);
@@ -153,8 +124,6 @@ public class SampahServiceImpl implements SampahService {
         List<Object[]> result = sampahRepository.getChartPerRwTanggal(startDate);
         List<ChartRwTanggalResponse> chart = new ArrayList<>();
 
-        System.out.println("TOTAL DATA CHART RW TANGGAL = " + result.size());
-
         for (int i = 0; i < result.size(); i++) {
             Object[] row = result.get(i);
 
@@ -174,8 +143,6 @@ public class SampahServiceImpl implements SampahService {
     public List<ChartRwBulananResponse> getChartRwBulanan() {
         List<Object[]> result = sampahRepository.getChartPerRwBulanan();
         List<ChartRwBulananResponse> chart = new ArrayList<>();
-
-        System.out.println("TOTAL DATA CHART RW BULANAN = " + result.size());
 
         for (int i = 0; i < result.size(); i++) {
             Object[] row = result.get(i);
@@ -199,8 +166,6 @@ public class SampahServiceImpl implements SampahService {
         List<Object[]> result = sampahRepository.getTotalSampahPerJenis();
         List<ChartJenisResponse> chart = new ArrayList<>();
 
-        System.out.println("TOTAL DATA CHART JENIS = " + result.size());
-
         for (int i = 0; i < result.size(); i++) {
             Object[] row = result.get(i);
             String jenis = row[0] != null ? row[0].toString() : "UNKNOWN";
@@ -214,8 +179,6 @@ public class SampahServiceImpl implements SampahService {
     public byte[] exportExcel(ChartFilterType filter) throws Exception {
         LocalDate startDate = resolveStartDate(filter);
         List<Object[]> result = sampahRepository.getChartPerRwTanggal(startDate);
-
-        System.out.println("TOTAL DATA EXCEL = " + result.size());
 
         SXSSFWorkbook workbook = new SXSSFWorkbook(100);
 
@@ -266,8 +229,6 @@ public class SampahServiceImpl implements SampahService {
             return outputStream.toByteArray();
 
         } catch (Exception e) {
-            System.out.println("===== EXPORT ERROR =====");
-            e.printStackTrace();
             throw e;
 
         } finally {
@@ -275,6 +236,7 @@ public class SampahServiceImpl implements SampahService {
             workbook.dispose();
         }
     }
+
     private LocalDate resolveStartDate(ChartFilterType filter) {
         LocalDate now = LocalDate.now();
         return switch (filter) {

@@ -18,7 +18,7 @@ public class EmailService {
     public void sendOtp(String toEmail, String otpCode, String purpose) {
         String jsonBody = """
                 {
-                  "sender": { "email": "%s", "name": "Siklus App" },
+                  "sender": { "email": "%s", "name": "Siklus" },
                   "to": [{ "email": "%s" }],
                   "subject": "Kode OTP Siklus - %s",
                   "textContent": "Halo!\\n\\nKode OTP kamu untuk %s adalah:\\n\\n  %s\\n\\nKode ini berlaku selama 5 menit.\\nJangan bagikan kode ini kepada siapapun.\\n\\nTim Siklus"
