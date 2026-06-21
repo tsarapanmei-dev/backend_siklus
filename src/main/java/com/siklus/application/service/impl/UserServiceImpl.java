@@ -15,10 +15,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.Optional;
 import java.util.Random;
 
 @Service
 public class UserServiceImpl implements UserService {
+
+    private static final long OTP_VALID_MINUTES = 10;
 
     private final UserRepository repo;
     private final PasswordEncoder passwordEncoder;
@@ -51,9 +55,32 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResponseEntity<?> register(RegisterRequest request) {
-        if (repo.findByEmailUser(request.getEmailUser()).isPresent()) {
-            return ResponseEntity.badRequest()
-                    .body(new BaseResponse("Email sudah digunakan!"));
+        Optional<User> existingUserOpt = repo.findByEmailUser(request.getEmailUser());
+
+        if (existingUserOpt.isPresent()) {
+            User existingUser = existingUserOpt.get();
+
+            if (existingUser.isVerified()) {
+                return ResponseEntity.badRequest()
+                        .body(new BaseResponse("Email sudah digunakan!"));
+            }
+
+            String otp = generateOtp();
+            existingUser.setOtpCode(otp);
+            existingUser.setOtpExpiry(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(OTP_VALID_MINUTES));
+            existingUser.setRwUser(request.getRwUser());
+            existingUser.setPass(passwordEncoder.encode(request.getPass()));
+
+            try {
+                emailService.sendOtp(existingUser.getEmailUser(), otp, "Verifikasi Akun");
+                repo.save(existingUser);
+                return ResponseEntity.ok(
+                        new BaseResponse("Akun belum terverifikasi. OTP baru telah dikirim ke email kamu.")
+                );
+            } catch (Exception e) {
+                return ResponseEntity.internalServerError()
+                        .body(new BaseResponse("Gagal mengirim OTP. Silakan coba lagi."));
+            }
         }
 
         User user = new User();
@@ -63,9 +90,8 @@ public class UserServiceImpl implements UserService {
         user.setVerified(false);
 
         String otp = generateOtp();
-
         user.setOtpCode(otp);
-        user.setOtpExpiry(LocalDateTime.now(java.time.ZoneOffset.UTC).plusMinutes(5));
+        user.setOtpExpiry(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(OTP_VALID_MINUTES));
 
         try {
             emailService.sendOtp(user.getEmailUser(), otp, "Verifikasi Akun");
@@ -73,7 +99,6 @@ public class UserServiceImpl implements UserService {
             return ResponseEntity.ok(
                     new BaseResponse("Registrasi berhasil! Cek email kamu untuk kode OTP.")
             );
-
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
                     .body(new BaseResponse("Gagal mengirim OTP. Silakan coba lagi."));
@@ -91,7 +116,7 @@ public class UserServiceImpl implements UserService {
 
         String otp = generateOtp();
         user.setOtpCode(otp);
-        user.setOtpExpiry(LocalDateTime.now().plusMinutes(5));
+        user.setOtpExpiry(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(OTP_VALID_MINUTES));
         repo.save(user);
 
         emailService.sendOtp(email, otp, "Verifikasi Akun");
@@ -107,7 +132,7 @@ public class UserServiceImpl implements UserService {
             return ResponseEntity.badRequest().body(new BaseResponse("Kode OTP salah!"));
         }
 
-        if (user.getOtpExpiry() == null || LocalDateTime.now(java.time.ZoneOffset.UTC).isAfter(user.getOtpExpiry())) {
+        if (user.getOtpExpiry() == null || LocalDateTime.now(ZoneOffset.UTC).isAfter(user.getOtpExpiry())) {
             return ResponseEntity.badRequest().body(new BaseResponse("Kode OTP sudah kedaluwarsa!"));
         }
 
@@ -126,7 +151,7 @@ public class UserServiceImpl implements UserService {
 
         String otp = generateOtp();
         user.setOtpCode(otp);
-        user.setOtpExpiry(LocalDateTime.now().plusMinutes(5));
+        user.setOtpExpiry(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(OTP_VALID_MINUTES));
         repo.save(user);
 
         emailService.sendOtp(email, otp, "Reset Password");
@@ -142,7 +167,7 @@ public class UserServiceImpl implements UserService {
             return ResponseEntity.badRequest().body(new BaseResponse("Kode OTP salah!"));
         }
 
-        if (user.getOtpExpiry() == null || LocalDateTime.now().isAfter(user.getOtpExpiry())) {
+        if (user.getOtpExpiry() == null || LocalDateTime.now(ZoneOffset.UTC).isAfter(user.getOtpExpiry())) {
             return ResponseEntity.badRequest().body(new BaseResponse("Kode OTP sudah kedaluwarsa!"));
         }
 

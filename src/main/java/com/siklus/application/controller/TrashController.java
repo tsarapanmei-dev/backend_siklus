@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/sampah")
@@ -21,7 +22,7 @@ public class TrashController {
     }
 
     @PostMapping("/save")
-    public ResponseEntity<java.util.Map<String, Object>> saveSampah(@RequestBody SampahReq request) {
+    public ResponseEntity<java.util.Map<String, Object>> saveSampah(@Valid @RequestBody SampahReq request) {
         sampahService.saveSampah(request);
         return ResponseEntity.ok(
                 java.util.Map.of(
