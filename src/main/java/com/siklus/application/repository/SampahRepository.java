@@ -43,6 +43,21 @@ public interface SampahRepository extends JpaRepository<Sampah, Long> {
     List<Object[]> getChartPerRwTanggal(LocalDate startDate);
 
     @Query("""
+        SELECT 
+            s.rwSampah,
+            s.dateSampah,
+            SUM(CASE WHEN s.jnsSampah = 'Organik' THEN s.brtSampah ELSE 0 END),
+            SUM(CASE WHEN s.jnsSampah = 'Anorganik' THEN s.brtSampah ELSE 0 END),
+            SUM(CASE WHEN s.jnsSampah = 'Residu' THEN s.brtSampah ELSE 0 END)
+        FROM Sampah s
+        WHERE s.dateSampah >= :startDate
+          AND s.rwSampah = :rw
+        GROUP BY s.rwSampah, s.dateSampah
+        ORDER BY s.rwSampah, s.dateSampah
+        """)
+    List<Object[]> getChartPerRwTanggal(LocalDate startDate, Sampah.RWSampah rw);
+
+    @Query("""
     SELECT
         s.rwSampah,
         YEAR(s.dateSampah),

@@ -176,9 +176,11 @@ public class SampahServiceImpl implements SampahService {
     }
 
     @Override
-    public byte[] exportExcel(ChartFilterType filter) throws Exception {
+    public byte[] exportExcel(ChartFilterType filter, Sampah.RWSampah rw) throws Exception {
         LocalDate startDate = resolveStartDate(filter);
-        List<Object[]> result = sampahRepository.getChartPerRwTanggal(startDate);
+        List<Object[]> result = (rw != null)
+                ? sampahRepository.getChartPerRwTanggal(startDate, rw)
+                : sampahRepository.getChartPerRwTanggal(startDate);
 
         SXSSFWorkbook workbook = new SXSSFWorkbook(100);
 
@@ -204,14 +206,14 @@ public class SampahServiceImpl implements SampahService {
                 Object[] rowData = result.get(i);
 
                 Sampah.RWSampah rwEnum = parseRW(rowData[0], i);
-                String rw              = rwEnum.getDbValue();
+                String rwValue         = rwEnum.getDbValue();
                 LocalDate tanggal      = parseLocalDate(rowData[1], i);
                 double organik         = parseDouble(rowData[2], "organik",   i);
                 double anorganik       = parseDouble(rowData[3], "anorganik", i);
                 double residu          = parseDouble(rowData[4], "residu",    i);
 
                 Row row = sheet.createRow(rowNum++);
-                row.createCell(0).setCellValue(rw);
+                row.createCell(0).setCellValue(rwValue);
                 row.createCell(1).setCellValue(tanggal.toString());
                 row.createCell(2).setCellValue(organik);
                 row.createCell(3).setCellValue(anorganik);

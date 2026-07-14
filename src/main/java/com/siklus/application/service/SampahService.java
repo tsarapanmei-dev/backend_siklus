@@ -17,5 +17,5 @@ public interface SampahService {
     List<ChartRwTanggalResponse> getChartRwTanggal(ChartFilterType filter);
     List<ChartRwBulananResponse> getChartRwBulanan();
     List<ChartJenisResponse> getChartJenis();
-    byte[] exportExcel(ChartFilterType filter) throws Exception;
+    byte[] exportExcel(ChartFilterType filter, Sampah.RWSampah rw) throws Exception;
 }
