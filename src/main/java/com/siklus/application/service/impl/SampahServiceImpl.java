@@ -192,14 +192,26 @@ public class SampahServiceImpl implements SampahService {
             headerRow.createCell(2).setCellValue("Organik");
             headerRow.createCell(3).setCellValue("Anorganik");
             headerRow.createCell(4).setCellValue("Residu");
+            headerRow.createCell(5).setCellValue("Jumlah");
 
             CellStyle headerStyle = workbook.createCellStyle();
-            Font font = workbook.createFont();
-            font.setBold(true);
-            headerStyle.setFont(font);
-            for (int i = 0; i < 5; i++) {
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+            for (int i = 0; i < 6; i++) {
                 headerRow.getCell(i).setCellStyle(headerStyle);
             }
+
+            CellStyle totalStyle = workbook.createCellStyle();
+            Font totalFont = workbook.createFont();
+            totalFont.setBold(true);
+            totalStyle.setFont(totalFont);
+            totalStyle.setBorderTop(BorderStyle.THIN);
+
+            double totalOrganik = 0;
+            double totalAnorganik = 0;
+            double totalResidu = 0;
+            double totalJumlah = 0;
 
             int rowNum = 1;
             for (int i = 0; i < result.size(); i++) {
@@ -211,6 +223,7 @@ public class SampahServiceImpl implements SampahService {
                 double organik         = parseDouble(rowData[2], "organik",   i);
                 double anorganik       = parseDouble(rowData[3], "anorganik", i);
                 double residu          = parseDouble(rowData[4], "residu",    i);
+                double jumlah          = organik + anorganik + residu;
 
                 Row row = sheet.createRow(rowNum++);
                 row.createCell(0).setCellValue(rwValue);
@@ -218,13 +231,44 @@ public class SampahServiceImpl implements SampahService {
                 row.createCell(2).setCellValue(organik);
                 row.createCell(3).setCellValue(anorganik);
                 row.createCell(4).setCellValue(residu);
+                row.createCell(5).setCellValue(jumlah);
+
+                totalOrganik += organik;
+                totalAnorganik += anorganik;
+                totalResidu += residu;
+                totalJumlah += jumlah;
             }
+
+            Row totalRow = sheet.createRow(rowNum);
+            Cell labelCell = totalRow.createCell(0);
+            labelCell.setCellValue("TOTAL");
+            labelCell.setCellStyle(totalStyle);
+
+            Cell emptyDateCell = totalRow.createCell(1);
+            emptyDateCell.setCellStyle(totalStyle);
+
+            Cell organikTotalCell = totalRow.createCell(2);
+            organikTotalCell.setCellValue(totalOrganik);
+            organikTotalCell.setCellStyle(totalStyle);
+
+            Cell anorganikTotalCell = totalRow.createCell(3);
+            anorganikTotalCell.setCellValue(totalAnorganik);
+            anorganikTotalCell.setCellStyle(totalStyle);
+
+            Cell residuTotalCell = totalRow.createCell(4);
+            residuTotalCell.setCellValue(totalResidu);
+            residuTotalCell.setCellStyle(totalStyle);
+
+            Cell jumlahTotalCell = totalRow.createCell(5);
+            jumlahTotalCell.setCellValue(totalJumlah);
+            jumlahTotalCell.setCellStyle(totalStyle);
 
             sheet.setColumnWidth(0, 3500);
             sheet.setColumnWidth(1, 4500);
             sheet.setColumnWidth(2, 3500);
             sheet.setColumnWidth(3, 3500);
             sheet.setColumnWidth(4, 3500);
+            sheet.setColumnWidth(5, 3500);
 
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             workbook.write(outputStream);

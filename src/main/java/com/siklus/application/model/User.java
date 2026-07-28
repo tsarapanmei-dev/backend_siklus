@@ -1,7 +1,7 @@
 package com.siklus.application.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import jakarta.persistence.*;
 
 @Entity
@@ -36,7 +36,7 @@ public class User {
 
     @JsonProperty("otp_expiry")
     @Column(name = "otp_expiry")
-    private LocalDateTime otpExpiry;
+    private Instant otpExpiry;
 
     public Long getIdUser() { return idUser; }
     public void setIdUser(Long idUser) { this.idUser = idUser; }
@@ -56,6 +56,6 @@ public class User {
     public String getOtpCode() { return otpCode; }
     public void setOtpCode(String otpCode) { this.otpCode = otpCode; }
 
-    public LocalDateTime getOtpExpiry() { return otpExpiry; }
-    public void setOtpExpiry(LocalDateTime otpExpiry) { this.otpExpiry = otpExpiry; }
+    public Instant getOtpExpiry() { return otpExpiry; }
+    public void setOtpExpiry(Instant otpExpiry) { this.otpExpiry = otpExpiry; }
 }

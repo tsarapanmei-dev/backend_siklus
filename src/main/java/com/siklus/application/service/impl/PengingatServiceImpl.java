@@ -1,6 +1,7 @@
 package com.siklus.application.service.impl;
 
 import com.siklus.application.dto.PengingatReq;
+import com.siklus.application.exception.ResourceNotFoundException;
 import com.siklus.application.model.Pengingat;
 import com.siklus.application.repository.PengingatRepository;
 import com.siklus.application.service.PengingatService;
@@ -19,6 +20,15 @@ public class PengingatServiceImpl implements PengingatService {
 
     @Override
     public Pengingat savePengingat(PengingatReq req) {
+
+        boolean sudahAda = pengingatRepository.existsByIdUserAndTanggalMulai(
+                req.getIdUser(),
+                req.getTanggalMulai()
+        );
+
+        if (sudahAda) {
+            throw new ResourceNotFoundException("Tanggal ini sudah pernah diinput. Silakan pilih tanggal lain.");
+        }
 
         Pengingat pengingat = new Pengingat();
 

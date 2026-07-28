@@ -14,8 +14,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.Random;
 
@@ -67,7 +67,7 @@ public class UserServiceImpl implements UserService {
 
             String otp = generateOtp();
             existingUser.setOtpCode(otp);
-            existingUser.setOtpExpiry(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(OTP_VALID_MINUTES));
+            existingUser.setOtpExpiry(Instant.now().plus(Duration.ofMinutes(OTP_VALID_MINUTES)));
             existingUser.setRwUser(request.getRwUser());
             existingUser.setPass(passwordEncoder.encode(request.getPass()));
 
@@ -91,7 +91,7 @@ public class UserServiceImpl implements UserService {
 
         String otp = generateOtp();
         user.setOtpCode(otp);
-        user.setOtpExpiry(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(OTP_VALID_MINUTES));
+        user.setOtpExpiry(Instant.now().plus(Duration.ofMinutes(OTP_VALID_MINUTES)));
 
         try {
             emailService.sendOtp(user.getEmailUser(), otp, "Verifikasi Akun");
@@ -116,7 +116,7 @@ public class UserServiceImpl implements UserService {
 
         String otp = generateOtp();
         user.setOtpCode(otp);
-        user.setOtpExpiry(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(OTP_VALID_MINUTES));
+        user.setOtpExpiry(Instant.now().plus(Duration.ofMinutes(OTP_VALID_MINUTES)));
         repo.save(user);
 
         emailService.sendOtp(email, otp, "Verifikasi Akun");
@@ -132,8 +132,11 @@ public class UserServiceImpl implements UserService {
             return ResponseEntity.badRequest().body(new BaseResponse("Kode OTP salah!"));
         }
 
-        if (user.getOtpExpiry() == null || LocalDateTime.now(ZoneOffset.UTC).isAfter(user.getOtpExpiry())) {
-            return ResponseEntity.badRequest().body(new BaseResponse("Kode OTP sudah kedaluwarsa!"));
+        if (user.getOtpExpiry() == null || Instant.now().isAfter(user.getOtpExpiry())) {
+            user.setOtpCode(null);
+            user.setOtpExpiry(null);
+            repo.save(user);
+            return ResponseEntity.badRequest().body(new BaseResponse("Kode OTP sudah kedaluwarsa! Silakan kirim ulang OTP."));
         }
 
         user.setVerified(true);
@@ -151,7 +154,7 @@ public class UserServiceImpl implements UserService {
 
         String otp = generateOtp();
         user.setOtpCode(otp);
-        user.setOtpExpiry(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(OTP_VALID_MINUTES));
+        user.setOtpExpiry(Instant.now().plus(Duration.ofMinutes(OTP_VALID_MINUTES)));
         repo.save(user);
 
         emailService.sendOtp(email, otp, "Reset Password");
@@ -167,8 +170,11 @@ public class UserServiceImpl implements UserService {
             return ResponseEntity.badRequest().body(new BaseResponse("Kode OTP salah!"));
         }
 
-        if (user.getOtpExpiry() == null || LocalDateTime.now(ZoneOffset.UTC).isAfter(user.getOtpExpiry())) {
-            return ResponseEntity.badRequest().body(new BaseResponse("Kode OTP sudah kedaluwarsa!"));
+        if (user.getOtpExpiry() == null || Instant.now().isAfter(user.getOtpExpiry())) {
+            user.setOtpCode(null);
+            user.setOtpExpiry(null);
+            repo.save(user);
+            return ResponseEntity.badRequest().body(new BaseResponse("Kode OTP sudah kedaluwarsa! Silakan kirim ulang OTP."));
         }
 
         user.setPass(passwordEncoder.encode(newPassword));
