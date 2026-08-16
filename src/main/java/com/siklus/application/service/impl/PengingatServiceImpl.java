@@ -3,6 +3,7 @@ package com.siklus.application.service.impl;
 import com.siklus.application.dto.PengingatReq;
 import com.siklus.application.exception.ResourceNotFoundException;
 import com.siklus.application.model.Pengingat;
+import com.siklus.application.model.TipePengingat;
 import com.siklus.application.repository.PengingatRepository;
 import com.siklus.application.service.PengingatService;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,9 @@ public class PengingatServiceImpl implements PengingatService {
         pengingat.setIdUser(req.getIdUser());
         pengingat.setTanggalMulai(req.getTanggalMulai());
         pengingat.setNotifAktif(req.getNotifAktif());
+        pengingat.setTipePengingat(
+                req.getTipePengingat() != null ? req.getTipePengingat() : TipePengingat.HARI_TERTENTU
+        );
 
         return pengingatRepository.save(pengingat);
     }

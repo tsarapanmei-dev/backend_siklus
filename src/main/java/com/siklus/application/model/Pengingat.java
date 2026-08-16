@@ -28,6 +28,11 @@ public class Pengingat {
     @Column(name = "notif_aktif")
     private Boolean notifAktif;
 
+    @Enumerated(EnumType.STRING)
+    @JsonProperty("tipe_pengingat")
+    @Column(name = "tipe_pengingat")
+    private TipePengingat tipePengingat;
+
     @JsonProperty("created_at")
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -53,6 +58,10 @@ public class Pengingat {
         return notifAktif;
     }
 
+    public TipePengingat getTipePengingat() {
+        return tipePengingat;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -71,6 +80,10 @@ public class Pengingat {
 
     public void setNotifAktif(Boolean notifAktif) {
         this.notifAktif = notifAktif;
+    }
+
+    public void setTipePengingat(TipePengingat tipePengingat) {
+        this.tipePengingat = tipePengingat;
     }
 
     public void setCreatedAt(LocalDateTime createdAt) {

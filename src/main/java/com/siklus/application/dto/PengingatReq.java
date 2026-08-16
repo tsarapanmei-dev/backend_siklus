@@ -1,6 +1,8 @@
 package com.siklus.application.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.siklus.application.model.TipePengingat;
+
 import java.time.LocalDate;
 
 public class PengingatReq {
@@ -13,6 +15,9 @@ public class PengingatReq {
 
     @JsonProperty("notif_aktif")
     private Boolean notifAktif;
+
+    @JsonProperty("tipe_pengingat")
+    private TipePengingat tipePengingat;
 
     public Long getIdUser() {
         return idUser;
@@ -36,5 +41,13 @@ public class PengingatReq {
 
     public void setNotifAktif(Boolean notifAktif) {
         this.notifAktif = notifAktif;
+    }
+
+    public TipePengingat getTipePengingat() {
+        return tipePengingat;
+    }
+
+    public void setTipePengingat(TipePengingat tipePengingat) {
+        this.tipePengingat = tipePengingat;
     }
 }
